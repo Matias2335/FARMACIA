@@ -116,6 +116,8 @@ Gerente
 Sistema
 ## 5. Diagrama Simplificado de Processo
 
+<img width="571" height="642" alt="image" src="https://github.com/user-attachments/assets/93a79161-7c2c-4beb-8702-764bc42f34c5" />
+
 
 ## 6. Preparação do Ambiente
 * Criar repositório do projeto (Git)
