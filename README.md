@@ -21,7 +21,7 @@ Na Cuidar+, acreditamos que saúde não é apenas tratar sintomas, mas prevenir,
 
 Mais do que uma farmácia, somos um ponto de apoio à comunidade. Um espaço onde o cuidado é prioridade, a escuta é ativa e a confiança é construída todos os dias.
 
-Cuidar+ — porque saúde é mais do que produto, é presença. 💚
+Cuidar+  porque saúde é mais do que produto, é presença. 💚
 
 ## 2. Definição do Domínio do Sistema
 ### Descrever, em poucas linhas:
