@@ -3,7 +3,7 @@
 ## INTEGRANTES
 GUILHERME MATIAS RODRIGUES DE SOUZA RA: 22.122.071-8 </br>
 CAIO ARNONI RA 22.221.019-7 </br>
-TAINA CUNHA 
+TAINA CUNHA BUENO RA 22.119.025-9 
 
 ## 1. Objetivo do Laboratório
 
@@ -125,3 +125,175 @@ Sistema
 React </br>
 EXPO GO </br>
 * Registrar essas decisões no README
+
+--------------------------------------
+# Parte 2
+
+#  Parte 1 – Identificação de Pontos de Reuso
+
+Foram identificados os seguintes pontos de reuso no sistema:
+
+---
+
+##  Estrutura Base do Aplicativo Mobile
+- **Framework:** React Native + Expo  
+
+O uso do React Native com Expo permite reutilização de componentes, desenvolvimento multiplataforma e acelera a criação do aplicativo.
+
+---
+
+##  Componentes de Formulário (Clientes, Produtos, Vendas)
+- **React Hook Form** → gerenciamento de formulários  
+- **Yup** → validação de dados  
+
+Permite reaproveitar regras de validação e reduzir repetição de código em diferentes cadastros.
+
+---
+
+##  Autenticação de Usuários
+- **Backend:** Node.js + Express  
+- **Banco de Dados:** Firebase (Firestore + Authentication)  
+- **Biblioteca:** JWT (JSON Web Token)  
+
+Utiliza padrão moderno de autenticação com API REST e controle de sessão seguro.
+
+---
+
+##  Sistema de Navegação (Busca / Catálogo)
+- **Biblioteca:** React Navigation  
+
+Organiza o fluxo entre telas e permite separação lógica entre módulos.
+
+---
+
+##  API de Pagamento Online
+- **API Externa:** Mercado Pago  
+
+Reuso de serviço financeiro consolidado, evitando desenvolvimento de sistema próprio de pagamento.
+
+---
+
+##  Controle de Estoque e Alertas de Vencimento
+- **Banco:** Firebase (Firestore)  
+- **Biblioteca:** date-fns  
+
+Permite cálculo de vencimentos e gerenciamento de estoque de forma organizada.
+
+---
+
+##  Geração de Relatórios
+- **Banco:** Firebase  
+- **Biblioteca:** React Native Chart Kit  
+
+Permite geração de gráficos (linha, barra e pizza) para visualização de vendas e controle de estoque.
+
+---
+
+#  Parte 2 – Análise de Critérios Técnicos e Arquiteturais
+
+---
+
+##  React Native + Expo (Framework Mobile)
+
+### Critérios Técnicos
+- Ampla utilização no mercado  
+- Boa documentação  
+- Comunidade ativa  
+- Compatibilidade com JavaScript  
+
+### Critérios Arquiteturais
+- Arquitetura modular baseada em componentes  
+- Redução do tempo de desenvolvimento  
+- Facilidade de manutenção e evolução futura  
+
+---
+
+##  Node.js + Express (Backend)
+
+### Critérios Técnicos
+- Leve e amplamente utilizado  
+- Fácil integração com aplicações React  
+- Grande ecossistema de bibliotecas  
+
+### Critérios Arquiteturais
+- Separação clara entre frontend e backend  
+- Estruturação via API REST  
+- Baixo acoplamento entre camadas  
+
+---
+
+##  Firebase (Firestore + Authentication)
+
+### Critérios Técnicos
+- Plataforma moderna e consolidada  
+- Integração direta com React Native  
+- Backend como serviço (BaaS)  
+- Autenticação integrada  
+
+### Critérios Arquiteturais
+- Redução da complexidade (sem necessidade de servidor próprio)  
+- Escalabilidade automática  
+- Sincronização em tempo real  
+- Agilidade na implementação  
+
+---
+
+##  React Navigation
+
+### Critérios Técnicos
+- Biblioteca oficial do ecossistema React Native  
+- Fácil implementação  
+
+### Critérios Arquiteturais
+- Organização do fluxo entre telas  
+- Separação lógica entre funcionalidades  
+
+---
+
+##  React Hook Form + Yup
+
+### Critérios Técnicos
+- Redução de código repetitivo  
+- Padronização de validações  
+
+### Critérios Arquiteturais
+- Centralização das regras de validação  
+- Redução de inconsistências nos dados  
+
+---
+
+##  Mercado Pago (API de Pagamento)
+
+### Critérios Técnicos
+- Solução consolidada e segura  
+- Conformidade com padrões de segurança  
+
+### Critérios Arquiteturais
+- Evita desenvolvimento de sistema financeiro próprio  
+- Reduz riscos de segurança  
+- Mantém foco no domínio da farmácia  
+
+---
+
+##  React Native Chart Kit
+
+### Critérios Técnicos
+- Biblioteca amplamente utilizada  
+- Fácil integração com Expo  
+- Suporte a gráficos de linha, barra e pizza  
+- Boa documentação  
+
+### Critérios Arquiteturais
+- Reutilização de componentes de visualização  
+- Separação entre lógica (dados Firebase) e apresentação (gráficos)  
+- Organização modular do sistema
+
+-------------------------------------------------------------------
+
+## Análise Arqueteturial
+
+<img width="829" height="540" alt="image" src="https://github.com/user-attachments/assets/37b7d03c-cc40-45da-a37f-22d9a4494c2b" />
+
+
+
+
