@@ -297,3 +297,45 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
 
 <img width="840" height="639" alt="image" src="https://github.com/user-attachments/assets/539cecb1-6ae2-4cc7-a328-56d55f778e97" />
 
+# Casos de Uso — Farmácia Cuidar+
+
+---
+
+## UC01 – Gerenciar Estoque
+
+| **Identificação** | **UC01 –Gerenciar Estoque** |
+|---|---|
+| **Função** | Permitir ao gerente cadastrar, atualizar e monitorar produtos e quantidades disponíveis no estoque. |
+| **Atores** | Gerente |
+| **Pré-condição** | Gerente autenticado no sistema com permissões administrativas. |
+| **Pós-condição** | Estoque atualizado corretamente no sistema. |
+| **Fluxo Principal** | **1. Atualizar estoque:**<br>a) Gerente acessa módulo de estoque;<br>b) Seleciona cadastrar ou atualizar produto;<br>c) Informa dados (nome, quantidade, validade);<br>d) Sistema salva informações;<br>e) Sistema confirma atualização. |
+| **Fluxo Alternativo** | **2. Produto já existente:**<br>a) Gerente seleciona produto cadastrado;<br>b) Sistema permite apenas atualização de quantidade ou validade;<br>c) Sistema salva alterações. |
+| **Fluxo Exceção** | **3. Erro ao salvar dados:**<br>a) Sistema tenta salvar informações;<br>b) Ocorre erro no banco;<br>c) Sistema informa falha ao usuário. |
+
+---
+## UC02 – Validação de Receita
+
+| **Identificação** | **UC02 – Validação de Receita** |
+|---|---|
+| **Função** | Permitir que o cliente envie uma receita médica e que o farmacêutico valide ou rejeite o documento. |
+| **Atores** | Cliente, Farmacêutico |
+| **Pré-condição** | Cliente autenticado no sistema. |
+| **Pós-condição** | Receita registrada como aprovada ou rejeitada e cliente notificado. |
+| **Fluxo Principal** | **1. Enviar receita:**<br>a) Cliente acessa opção de envio de receita;<br>b) Cliente envia imagem ou arquivo;<br>c) Sistema registra envio;<br>d) Farmacêutico acessa receitas pendentes;<br>e) Farmacêutico analisa documento;<br>f) Farmacêutico aprova ou rejeita;<br>g) Sistema notifica cliente sobre resultado. |
+| **Fluxo Alternativo** | **2. Receita ilegível ou incompleta:**<br>a) Farmacêutico analisa receita;<br>b) Farmacêutico identifica inconsistência;<br>c) Sistema solicita novo envio ao cliente. |
+| **Fluxo Exceção** | **3. Erro no upload:**<br>a) Cliente envia arquivo;<br>b) Sistema detecta falha;<br>c) Sistema informa erro;<br>d) Cliente tenta novamente. |
+
+## UC03 – Realizar Compra
+
+| **Identificação** | **UC03 – Realizar Compra** |
+|---|---|
+| **Função** | Permitir que o cliente selecione produtos, envie receita quando necessário e finalize uma compra pelo aplicativo. |
+| **Atores** | Cliente |
+| **Pré-condição** | Cliente autenticado no sistema e aplicativo disponível para uso. |
+| **Pós-condição** | Pedido registrado com sucesso, pagamento processado e estoque atualizado. |
+| **Fluxo Principal** | **1. Comprar produtos:**<br>a) Sistema apresenta lista de produtos;<br>b) Cliente seleciona produtos;<br>c) Cliente adiciona ao carrinho;<br>d) Cliente confirma a compra;<br>e) Sistema processa pagamento;<br>f) Sistema registra pedido;<br>g) Sistema atualiza estoque;<br>h) Sistema exibe confirmação da compra. |
+| **Fluxo Alternativo** | **2. Produto com receita obrigatória:**<br>a) Cliente seleciona produto controlado;<br>b) Sistema solicita envio da receita;<br>c) Cliente envia receita;<br>d) Sistema registra receita e continua processo de compra.<br><br>**3. Cancelar compra:**<br>a) Cliente acessa carrinho;<br>b) Cliente remove produtos;<br>c) Sistema atualiza carrinho;<br>d) Cliente pode encerrar processo sem finalizar pedido. |
+| **Fluxo Exceção** | **4. Falha no pagamento:**<br>a) Sistema tenta processar pagamento;<br>b) Ocorre erro na transação;<br>c) Sistema informa falha;<br>d) Cliente pode tentar novamente ou cancelar. |
+
+---
