@@ -3,7 +3,7 @@
 ## INTEGRANTES
 GUILHERME MATIAS RODRIGUES DE SOUZA RA: 22.122.071-8 </br>
 CAIO ARNONI RA 22.221.019-7 </br>
-TAINA CUNHA BUENO RA 22.119.025-9 
+TAINÁ CUNHA BUENO RA 22.119.025-9 
 
 ## 1. Objetivo do Laboratório
 
@@ -295,7 +295,8 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
 ---------------------------------------------------------------------
 # Parte 3 - Diagrama de Componentes de Software
 
-<img width="840" height="639" alt="image" src="https://github.com/user-attachments/assets/539cecb1-6ae2-4cc7-a328-56d55f778e97" />
+<img width="696" height="624" alt="image" src="https://github.com/user-attachments/assets/8fcde019-25d1-4ee6-837d-5ca6ac91d84a" />
+
 
 # Casos de Uso — Farmácia Cuidar+
 
@@ -339,3 +340,19 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
 | **Fluxo Exceção** | **4. Falha no pagamento:**<br>a) Sistema tenta processar pagamento;<br>b) Ocorre erro na transação;<br>c) Sistema informa falha;<br>d) Cliente pode tentar novamente ou cancelar. |
 
 ---
+
+# Parte 3 - Interfaces de Software
+
+### UC01 – Gerenciar Estoque
+- Interface de Estoque
+- Interface de Autenticação
+
+### UC02 – Validação de Receita
+- Interface de Receitas
+- Interface de Autenticação
+
+### UC03 – Realizar Compra
+- Interface de Compras
+- Interface de Pagamento
+- Interface de Estoque
+- Interface de Autenticação
