@@ -288,12 +288,12 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
 - Separação entre lógica (dados Firebase) e apresentação (gráficos)  
 - Organização modular do sistema
 
--------------------------------------------------------------------
-
 ## Análise Arqueteturial
 
 <img width="829" height="540" alt="image" src="https://github.com/user-attachments/assets/37b7d03c-cc40-45da-a37f-22d9a4494c2b" />
 
+---------------------------------------------------------------------
+# Parte 3 - Diagrama de Componentes de Software
 
-
+<img width="840" height="639" alt="image" src="https://github.com/user-attachments/assets/539cecb1-6ae2-4cc7-a328-56d55f778e97" />
 
