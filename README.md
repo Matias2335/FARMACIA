@@ -356,20 +356,19 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
 - Interface de Pagamento
 - Interface de Estoque
 - Interface de Autenticação
+  
+---
 
-# Teste 
+#  interfaces em componentes
 
-1) Agrupar interfaces em componentes (responsabilidades claras)
-Componente 1 — Auth (Autenticação e Sessão)
+### Componente 1 — Auth (Autenticação e Sessão)
 
-Responsabilidade: login, logout, emissão/validação de token, controle de perfil (cliente/gerente/farmacêutico).
-
-Interfaces fornecidas (provides):
-
-IAuth: login(), logout(), validateToken(), getUserRole()
+- Responsabilidade: login, logout, emissão/validação de token, controle de perfil (cliente/gerente/farmacêutico).
+- Interfaces fornecidas (provides):
+- IAuth: login(), logout(), validateToken(), getUserRole()
 
 ---
-Componente 2 — Estoque (Inventário e Validade)
+### Componente 2 — Estoque (Inventário e Validade)
 
 Responsabilidade: cadastrar/atualizar produto, consultar disponibilidade, alertas de vencimento, baixa de estoque por venda.
 
@@ -590,3 +589,5 @@ Compras requer IAuth, IEstoque, IReceitas, IPagamento
 Pagamento requer IAuth e chama a API Mercado Pago (externo)
 
 Notificação pode ser chamado por Receitas, Compras e Estoque
+
+## Diagrama de Componentes 
