@@ -359,236 +359,199 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
   
 ---
 
-#  interfaces em componentes
+# Interfaces em Componentes
 
-### Componente 1 — Auth (Autenticação e Sessão)
+## Componente 1 — Auth (Autenticação e Sessão)
 
 - Responsabilidade: login, logout, emissão/validação de token, controle de perfil (cliente/gerente/farmacêutico).
 - Interfaces fornecidas (provides):
-- IAuth: login(), logout(), validateToken(), getUserRole()
-
----
-### Componente 2 — Estoque (Inventário e Validade)
-
-Responsabilidade: cadastrar/atualizar produto, consultar disponibilidade, alertas de vencimento, baixa de estoque por venda.
-
-Interfaces fornecidas:
-
-IEstoque: cadastrarProduto(), atualizarProduto(), consultarSaldo(), baixarEstoque(), listarVencimentos()
-
-Interfaces requeridas (requires):
-
-IAuth (para checar permissões)
-
-(opcional) INotificacao (para alertas)
-
----
-Componente 3 — Receitas (Upload + Validação Farmacêutica)
-
-Responsabilidade: envio de receita pelo cliente, fila de pendentes, análise/aprovação/rejeição e registro.
-
-Interfaces fornecidas:
-
-IReceitas: enviarReceita(), listarPendentes(), validarReceita(), consultarStatus()
-
-Interfaces requeridas:
-
-IAuth (autorização por perfil)
-
-INotificacao (avisar cliente do resultado)
-
-(opcional) IStorage (separar armazenamento do arquivo do resto do sistema)
-
----
-Componente 4 — Compras (Carrinho + Pedido)
-
-Responsabilidade: catálogo/listagem, carrinho, criar pedido, confirmar pedido, integração com pagamento, disparar baixa de estoque.
-
-Interfaces fornecidas:
-
-ICompras: adicionarAoCarrinho(), removerDoCarrinho(), criarPedido(), confirmarPedido(), consultarPedido()
-
-Interfaces requeridas:
-
-IAuth (cliente autenticado)
-
-IEstoque (validar saldo e baixar estoque)
-
-IReceitas (quando item exigir receita)
-
-IPagamento (processar pagamento)
-
-----
-
-Componente 5 — Pagamento (Gateway Mercado Pago)
-
-Responsabilidade: criar cobrança, confirmar pagamento, registrar status da transação.
-
-Interfaces fornecidas:
-
-IPagamento: criarCobranca(), confirmarPagamento(), consultarStatusTransacao()
-
-Interfaces requeridas:
-
-IAuth (garantir que a transação pertence ao usuário/sessão)
-
-(externo) Mercado Pago API
-
----
-Componente 6 — Notificações (Push/E-mail/In-app)
-
-Responsabilidade: enviar notificações de compra, receita aprovada/rejeitada, alerta de vencimento.
-
-Interfaces fornecidas:
-
-INotificacao: notificarUsuario(), notificarEvento()
-
-Interfaces requeridas:
-
-(externo) serviço de push/e-mail (ex.: Expo Push)
-
-Resumo prático (mapeamento UC → componentes):
-
-UC01 (Estoque): Auth + Estoque (+ Notificação opcional)
-
-UC02 (Receitas): Auth + Receitas + Notificação
-
-UC03 (Compra): Auth + Compras + Pagamento + Estoque (+ Receitas quando necessário)
-
----
-## 2) Contratos: pré e pós-condições (1 operação por componente)
-
-A ideia aqui é você colocar “regrinhas” objetivas (contrato), que amarram comportamento e facilitam testes.
-
-Auth — operação login(email, senha)
-
-Pré-condições
-
-email e senha não vazios
-
-usuário existe e está ativo
-
-Pós-condições
-
-token/sessão válida criada
-
-perfil do usuário (role) disponível para autorização
-
-Estoque — operação atualizarProduto(produtoId, qtd, validade)
+  - IAuth
+    - login()
+    - logout()
+    - validateToken()
+    - getUserRole()
 
 ---
 
-Pré-condições
+## Componente 2 — Estoque (Inventário e Validade)
 
-usuário autenticado e getUserRole() ∈ {GERENTE}
-
-qtd >= 0
-
-validade é data válida (se aplicável ao produto)
-
-produtoId existente (ou fluxo de cadastro separado)
-
-Pós-condições
-
-estoque do produto persistido com os novos valores
-
-registro de auditoria (quem alterou / quando) salvo
-
-se validade próxima do vencimento ⇒ evento gerado para INotificacao (se usado)
-
-Receitas — operação validarReceita(receitaId, decisao, motivo?)
+- Responsabilidade: cadastrar/atualizar produto, consultar disponibilidade, alertas de vencimento, baixa de estoque por venda.
+- Interfaces fornecidas (provides):
+  - IEstoque
+    - cadastrarProduto()
+    - atualizarProduto()
+    - consultarSaldo()
+    - baixarEstoque()
+    - listarVencimentos()
+- Interfaces requeridas (requires):
+  - IAuth (para checar permissões)
 
 ---
 
-Pré-condições
+## Componente 3 — Receitas (Upload e Validação Farmacêutica)
 
-usuário autenticado e getUserRole() ∈ {FARMACEUTICO}
-
-receita existe e está com status PENDENTE
-
-decisao ∈ {APROVAR, REJEITAR}
-
-se REJEITAR ⇒ motivo obrigatório
-
-Pós-condições
-
-status atualizado (APROVADA ou REJEITADA)
-
-data/hora + farmacêutico responsável registrados
-
-cliente notificado via INotificacao
-
-Compras — operação confirmarPedido(pedidoId)
+- Responsabilidade: envio de receita pelo cliente, fila de pendentes, análise/aprovação/rejeição e registro do status.
+- Interfaces fornecidas (provides):
+  - IReceitas
+    - enviarReceita()
+    - listarPendentes()
+    - validarReceita()
+    - consultarStatus()
+- Interfaces requeridas (requires):
+  - IAuth (para validar autenticação e permissões)
+  - INotificacao (para notificar o cliente sobre aprovação/rejeição)
 
 ---
 
-Pré-condições
+## Componente 4 — Compras (Carrinho e Pedido)
 
-usuário autenticado e getUserRole() == CLIENTE
-
-pedido existe e está em estado EM_ABERTO
-
-itens do pedido têm saldo suficiente em IEstoque
-
-se houver item controlado ⇒ existe receita APROVADA vinculada ao pedido/cliente
-
-Pós-condições
-
-cobrança criada/confirmada via IPagamento
-
-se pagamento confirmado ⇒ IEstoque.baixarEstoque() executado
-
-pedido passa para CONFIRMADO (ou PAGO)
-
-cliente notificado (confirmação de compra)
-
-Pagamento — operação confirmarPagamento(transacaoId)
+- Responsabilidade: catálogo/listagem, carrinho, criação e confirmação de pedido, integração com pagamento, baixa de estoque.
+- Interfaces fornecidas (provides):
+  - ICompras
+    - adicionarAoCarrinho()
+    - removerDoCarrinho()
+    - criarPedido()
+    - confirmarPedido()
+    - consultarPedido()
+- Interfaces requeridas (requires):
+  - IAuth (cliente autenticado)
+  - IEstoque (validar saldo e baixar estoque)
+  - IReceitas (quando houver item com receita obrigatória)
+  - IPagamento (processar pagamento)
 
 ---
 
-Pré-condições
+## Componente 5 — Pagamento (Gateway Mercado Pago)
 
-transação existe e está PENDENTE
-
-assinatura/token do gateway válido (callback/autorização)
-
-Pós-condições
-
-status atualizado (APROVADO ou RECUSADO)
-
-referência ao pedido salva para rastreabilidade
-
-Notificações — operação notificarUsuario(userId, mensagem, tipo)
+- Responsabilidade: criar cobrança, confirmar pagamento, consultar status da transação e integrar com o Mercado Pago.
+- Interfaces fornecidas (provides):
+  - IPagamento
+    - criarCobranca()
+    - confirmarPagamento()
+    - consultarStatusTransacao()
+- Interfaces requeridas (requires):
+  - IAuth (garantir vínculo da transação com usuário/sessão)
+  - Mercado Pago API (serviço externo)
 
 ---
 
-Pré-condições
+## Componente 6 — Notificações (Push/In-app)
 
-userId válido
+- Responsabilidade: envio de notificações sobre compra, validação de receita e alertas (ex.: vencimento).
+- Interfaces fornecidas (provides):
+  - INotificacao
+    - notificarUsuario()
+    - notificarEvento()
+- Interfaces requeridas (requires):
+  - Serviço de Push/E-mail (externo, ex.: Expo Push Notifications)
 
-mensagem não vazia
+---
+<br>
 
-tipo ∈ {RECEITA_STATUS, COMPRA_STATUS, ALERTA_VENCIMENTO}
+# Contratos das Operações (Pré e Pós-condições)
 
-Pós-condições
+## Componente 1 — Auth (Autenticação e Sessão)
 
-notificação registrada (log) e enviada ao canal disponível
+Operação: login(email, senha)
 
-status de envio armazenado (sucesso/falha)
+- Pré-condições:
+  - email e senha não podem estar vazios.
+  - usuário deve existir e estar ativo no sistema.
 
-## 3) Dependências entre componentes (via interfaces)
+- Pós-condições:
+  - sessão/token válido é gerado e armazenado.
+  - perfil do usuário (cliente/gerente/farmacêutico) fica disponível para autorização nas demais operações.
 
-Quem depende de quem (requer → fornece):
+---
 
-Estoque requer IAuth
+## Componente 2 — Estoque (Inventário e Validade)
 
-Receitas requer IAuth e INotificacao
+Operação: atualizarProduto(produtoId, qtd, validade)
 
-Compras requer IAuth, IEstoque, IReceitas, IPagamento
+- Pré-condições:
+  - usuário deve estar autenticado.
+  - usuário deve possuir permissão de gerente.
+  - qtd deve ser maior ou igual a 0.
+  - validade deve ser uma data válida (quando aplicável).
+  - produtoId deve existir no sistema.
 
-Pagamento requer IAuth e chama a API Mercado Pago (externo)
+- Pós-condições:
+  - dados do produto (quantidade e/ou validade) são persistidos com sucesso.
+  - sistema registra auditoria da alteração (usuário e data/hora).
+  - caso a validade esteja próxima do vencimento, um evento de alerta pode ser gerado.
 
-Notificação pode ser chamado por Receitas, Compras e Estoque
+---
+
+## Componente 3 — Receitas (Upload e Validação Farmacêutica)
+
+Operação: validarReceita(receitaId, decisao, motivo)
+
+- Pré-condições:
+  - usuário deve estar autenticado.
+  - usuário deve possuir permissão de farmacêutico.
+  - receitaId deve existir no sistema.
+  - a receita deve estar com status PENDENTE.
+  - decisao deve ser APROVAR ou REJEITAR.
+  - se decisao = REJEITAR, motivo deve ser informado.
+
+- Pós-condições:
+  - status da receita é atualizado para APROVADA ou REJEITADA.
+  - farmacêutico responsável e data/hora da validação são registrados.
+  - cliente é notificado sobre o resultado.
+
+---
+
+## Componente 4 — Compras (Carrinho e Pedido)
+
+Operação: confirmarPedido(pedidoId)
+
+- Pré-condições:
+  - usuário deve estar autenticado.
+  - usuário deve possuir perfil de cliente.
+  - pedidoId deve existir no sistema.
+  - pedido deve estar com status EM_ABERTO.
+  - todos os itens do pedido devem ter saldo disponível em estoque.
+  - se houver item controlado, deve existir receita APROVADA vinculada ao cliente/pedido.
+
+- Pós-condições:
+  - pagamento é processado e registrado.
+  - se pagamento aprovado, o estoque é baixado automaticamente.
+  - pedido muda para status CONFIRMADO (ou PAGO).
+  - cliente recebe notificação de confirmação da compra.
+
+---
+
+## Componente 5 — Pagamento (Gateway Mercado Pago)
+
+Operação: confirmarPagamento(transacaoId)
+
+- Pré-condições:
+  - transacaoId deve existir no sistema.
+  - a transação deve estar com status PENDENTE.
+  - dados/assinatura de validação do gateway devem ser válidos.
+
+- Pós-condições:
+  - status da transação é atualizado para APROVADO ou RECUSADO.
+  - referência do pedido associada à transação é registrada para rastreabilidade.
+  - sistema disponibiliza o resultado para o fluxo de compras.
+
+---
+
+## Componente 6 — Notificações (Push/In-app)
+
+Operação: notificarUsuario(userId, mensagem, tipo)
+
+- Pré-condições:
+  - userId deve ser válido.
+  - mensagem não pode estar vazia.
+  - tipo deve ser um valor aceito (ex.: RECEITA_STATUS, COMPRA_STATUS, ALERTA_VENCIMENTO).
+
+- Pós-condições:
+  - notificação é registrada no sistema (log/histórico).
+  - notificação é enviada ao canal disponível (push/in-app/e-mail).
+  - status de entrega é armazenado (sucesso ou falha).
+
+---
 
 ## Diagrama de Componentes
 <img width="1032" height="536" alt="Captura de tela 2026-03-04 220601" src="https://github.com/user-attachments/assets/e45cc267-2a03-457c-912e-ecf75f93c2a1" />
