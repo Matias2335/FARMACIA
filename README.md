@@ -590,4 +590,6 @@ Pagamento requer IAuth e chama a API Mercado Pago (externo)
 
 Notificação pode ser chamado por Receitas, Compras e Estoque
 
-## Diagrama de Componentes 
+## Diagrama de Componentes
+<img width="1032" height="536" alt="Captura de tela 2026-03-04 220601" src="https://github.com/user-attachments/assets/e45cc267-2a03-457c-912e-ecf75f93c2a1" />
+
