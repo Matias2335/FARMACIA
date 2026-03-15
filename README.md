@@ -727,10 +727,10 @@ npx expo start
 
 ## Demonstração do Funcionamento
 
-### Tela de Pedidos — categorias disponíveis
+### Tela de Pedidos
 ![Pedidos](prints/pedidos.png)
 
-### Higiene Pessoal — subcategorias
+### Higiene Pessoal
 ![Higiene](prints/higiene.png)
 
 ### Sabonetes 
@@ -739,5 +739,5 @@ npx expo start
 ### Desodorantes 
 ![Desodorantes](prints/desodorantes.png)
 
-### Carrinho —
+### Carrinho
 ![Carrinho](prints/carrinho.png)
