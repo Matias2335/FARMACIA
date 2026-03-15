@@ -359,200 +359,385 @@ Permite geração de gráficos (linha, barra e pizza) para visualização de ven
   
 ---
 
-# Interfaces em Componentes
-
 ## Componente 1 — Auth (Autenticação e Sessão)
 
-- Responsabilidade: login, logout, emissão/validação de token, controle de perfil (cliente/gerente/farmacêutico).
+- **Responsabilidade:** login e cadastro de usuários, controle de acesso ao app.
 - Interfaces fornecidas (provides):
-  - IAuth
-    - login()
-    - logout()
-    - validateToken()
-    - getUserRole()
+  - IAutenticacaoService
+    - `autenticar(usuario, senha)` — valida credenciais e libera acesso
+    - `cadastrar(usuario, senha)` — registra novo usuário
+- Interfaces requeridas (requires): nenhuma
+
+> **Status atual:** login e cadastro funcionando com AsyncStorage local.
+> Integração com Firebase Authentication planejada para próxima etapa.
 
 ---
 
-## Componente 2 — Estoque (Inventário e Validade)
+## Componente 2 — Estoque (Inventário de Produtos)
 
-- Responsabilidade: cadastrar/atualizar produto, consultar disponibilidade, alertas de vencimento, baixa de estoque por venda.
+- **Responsabilidade:** manter o catálogo de produtos disponíveis por categoria (Higiene, Cabelos, Remédios, etc.), com nome, preço e imagem.
 - Interfaces fornecidas (provides):
   - IEstoque
-    - cadastrarProduto()
-    - atualizarProduto()
-    - consultarSaldo()
-    - baixarEstoque()
-    - listarVencimentos()
+    - `listarPorCategoria(categoria)` — retorna produtos de uma categoria
+    - `cadastrarProduto(nome, preco, categoria)` — adiciona produto ao catálogo
+    - `atualizarProduto(nome, preco)` — atualiza dados do produto
 - Interfaces requeridas (requires):
-  - IAuth (para checar permissões)
+  - IAutenticacaoService (para verificar permissão de gerente)
+
+> **Status atual:** catálogo de produtos implementado localmente (dados fixos no código).
+> Integração com Firebase Firestore planejada para próxima etapa.
 
 ---
 
-## Componente 3 — Receitas (Upload e Validação Farmacêutica)
+## Componente 3 — Compras (Carrinho e Pedido)
 
-- Responsabilidade: envio de receita pelo cliente, fila de pendentes, análise/aprovação/rejeição e registro do status.
+- **Responsabilidade:** exibir catálogo, permitir adição e remoção de itens no carrinho, persistir o pedido.
+- Interfaces fornecidas (provides):
+  - ICarrinhoService
+    - `salvar(nomeProduto, quantidade)` — persiste item no carrinho
+    - `remover(nomeProduto)` — remove item do carrinho
+    - `listar()` — retorna todos os itens do carrinho
+- Interfaces requeridas (requires):
+  - IAutenticacaoService (usuário autenticado para acessar o carrinho)
+  - IEstoque (listar produtos disponíveis por categoria)
+
+> **Status atual:** carrinho implementado e funcionando com AsyncStorage.
+> Categorias implementadas: Higiene Pessoal, Cabelos, Remédios, Pastéis, Bebidas, Salgados.
+
+---
+
+## Componente 4 — Receitas (Validação Farmacêutica)
+
+- **Responsabilidade:** envio de receita médica pelo cliente e validação pelo farmacêutico para produtos controlados.
 - Interfaces fornecidas (provides):
   - IReceitas
-    - enviarReceita()
-    - listarPendentes()
-    - validarReceita()
-    - consultarStatus()
+    - `enviarReceita(imagem)` — cliente envia foto da receita
+    - `consultarStatus(receitaId)` — verifica se receita foi aprovada ou rejeitada
+    - `validarReceita(receitaId, decisao)` — farmacêutico aprova ou rejeita
 - Interfaces requeridas (requires):
-  - IAuth (para validar autenticação e permissões)
-  - INotificacao (para notificar o cliente sobre aprovação/rejeição)
+  - IAutenticacaoService (para validar perfil do farmacêutico)
+  - INotificacao (para avisar o cliente sobre o resultado)
+
+> **Status atual:** planejado. Será implementado em etapa futura.
 
 ---
 
-## Componente 4 — Compras (Carrinho e Pedido)
+## Componente 5 — Pagamento
 
-- Responsabilidade: catálogo/listagem, carrinho, criação e confirmação de pedido, integração com pagamento, baixa de estoque.
-- Interfaces fornecidas (provides):
-  - ICompras
-    - adicionarAoCarrinho()
-    - removerDoCarrinho()
-    - criarPedido()
-    - confirmarPedido()
-    - consultarPedido()
-- Interfaces requeridas (requires):
-  - IAuth (cliente autenticado)
-  - IEstoque (validar saldo e baixar estoque)
-  - IReceitas (quando houver item com receita obrigatória)
-  - IPagamento (processar pagamento)
-
----
-
-## Componente 5 — Pagamento (Gateway Mercado Pago)
-
-- Responsabilidade: criar cobrança, confirmar pagamento, consultar status da transação e integrar com o Mercado Pago.
+- **Responsabilidade:** processar o pagamento do pedido integrado ao Mercado Pago.
 - Interfaces fornecidas (provides):
   - IPagamento
-    - criarCobranca()
-    - confirmarPagamento()
-    - consultarStatusTransacao()
+    - `criarCobranca(pedidoId, valor)` — gera cobrança no gateway
+    - `consultarStatus(transacaoId)` — verifica se pagamento foi aprovado
 - Interfaces requeridas (requires):
-  - IAuth (garantir vínculo da transação com usuário/sessão)
+  - IAutenticacaoService (vincular transação ao usuário autenticado)
   - Mercado Pago API (serviço externo)
 
+> **Status atual:** planejado. Será implementado em etapa futura.
+
 ---
 
-## Componente 6 — Notificações (Push/In-app)
+## Componente 6 — Notificações
 
-- Responsabilidade: envio de notificações sobre compra, validação de receita e alertas (ex.: vencimento).
+- **Responsabilidade:** enviar notificações ao usuário sobre status do pedido e da receita.
 - Interfaces fornecidas (provides):
   - INotificacao
-    - notificarUsuario()
-    - notificarEvento()
+    - `notificarUsuario(userId, mensagem)` — envia notificação ao usuário
 - Interfaces requeridas (requires):
-  - Serviço de Push/E-mail (externo, ex.: Expo Push Notifications)
+  - Expo Push Notifications (serviço externo)
+
+> **Status atual:** planejado. Será implementado em etapa futura.
 
 ---
-<br>
 
 # Contratos das Operações (Pré e Pós-condições)
 
-## Componente 1 — Auth (Autenticação e Sessão)
+## Componente 1 — Auth
 
-Operação: login(email, senha)
+**Operação: `autenticar(usuario, senha)`**
 
 - Pré-condições:
-  - email e senha não podem estar vazios.
-  - usuário deve existir e estar ativo no sistema.
-
+  - `usuario` e `senha` não podem estar vazios
+  - Usuário deve estar cadastrado no sistema
 - Pós-condições:
-  - sessão/token válido é gerado e armazenado.
-  - perfil do usuário (cliente/gerente/farmacêutico) fica disponível para autorização nas demais operações.
+  - Acesso liberado e usuário redirecionado para tela de Pedidos
+  - Mensagem de erro exibida se credenciais inválidas
 
 ---
 
-## Componente 2 — Estoque (Inventário e Validade)
+## Componente 2 — Estoque
 
-Operação: atualizarProduto(produtoId, qtd, validade)
+**Operação: `listarPorCategoria(categoria)`**
 
 - Pré-condições:
-  - usuário deve estar autenticado.
-  - usuário deve possuir permissão de gerente.
-  - qtd deve ser maior ou igual a 0.
-  - validade deve ser uma data válida (quando aplicável).
-  - produtoId deve existir no sistema.
-
+  - `categoria` deve ser um valor válido (ex: Higiene, Cabelos, Remédios)
 - Pós-condições:
-  - dados do produto (quantidade e/ou validade) são persistidos com sucesso.
-  - sistema registra auditoria da alteração (usuário e data/hora).
-  - caso a validade esteja próxima do vencimento, um evento de alerta pode ser gerado.
+  - Lista de produtos com nome, preço e imagem retornada para o componente Compras
+  - Lista vazia retornada se categoria não tiver produtos cadastrados
 
 ---
 
-## Componente 3 — Receitas (Upload e Validação Farmacêutica)
+## Componente 3 — Compras
 
-Operação: validarReceita(receitaId, decisao, motivo)
+**Operação: `salvar(nomeProduto, quantidade)`**
 
 - Pré-condições:
-  - usuário deve estar autenticado.
-  - usuário deve possuir permissão de farmacêutico.
-  - receitaId deve existir no sistema.
-  - a receita deve estar com status PENDENTE.
-  - decisao deve ser APROVAR ou REJEITAR.
-  - se decisao = REJEITAR, motivo deve ser informado.
-
+  - `nomeProduto` não pode estar vazio
+  - `quantidade` deve ser maior ou igual a 0
 - Pós-condições:
-  - status da receita é atualizado para APROVADA ou REJEITADA.
-  - farmacêutico responsável e data/hora da validação são registrados.
-  - cliente é notificado sobre o resultado.
+  - Se `quantidade > 0`: item gravado no AsyncStorage com prefixo `carrinho__`
+  - Se `quantidade = 0`: item removido do AsyncStorage
+  - Aba Carrinho exibe o estado atualizado ao ser aberta
 
 ---
 
-## Componente 4 — Compras (Carrinho e Pedido)
+## Componente 4 — Receitas
 
-Operação: confirmarPedido(pedidoId)
+**Operação: `validarReceita(receitaId, decisao)`**
 
 - Pré-condições:
-  - usuário deve estar autenticado.
-  - usuário deve possuir perfil de cliente.
-  - pedidoId deve existir no sistema.
-  - pedido deve estar com status EM_ABERTO.
-  - todos os itens do pedido devem ter saldo disponível em estoque.
-  - se houver item controlado, deve existir receita APROVADA vinculada ao cliente/pedido.
-
+  - Usuário autenticado como farmacêutico
+  - Receita com status PENDENTE
+  - `decisao` deve ser APROVAR ou REJEITAR
 - Pós-condições:
-  - pagamento é processado e registrado.
-  - se pagamento aprovado, o estoque é baixado automaticamente.
-  - pedido muda para status CONFIRMADO (ou PAGO).
-  - cliente recebe notificação de confirmação da compra.
+  - Status da receita atualizado para APROVADA ou REJEITADA
+  - Cliente notificado sobre o resultado
 
 ---
 
-## Componente 5 — Pagamento (Gateway Mercado Pago)
+## Componente 5 — Pagamento
 
-Operação: confirmarPagamento(transacaoId)
+**Operação: `criarCobranca(pedidoId, valor)`**
 
 - Pré-condições:
-  - transacaoId deve existir no sistema.
-  - a transação deve estar com status PENDENTE.
-  - dados/assinatura de validação do gateway devem ser válidos.
-
+  - Usuário autenticado
+  - `valor` maior que zero
+  - Pedido com status EM_ABERTO
 - Pós-condições:
-  - status da transação é atualizado para APROVADO ou RECUSADO.
-  - referência do pedido associada à transação é registrada para rastreabilidade.
-  - sistema disponibiliza o resultado para o fluxo de compras.
+  - Cobrança criada no Mercado Pago
+  - Status da transação disponível para consulta
 
 ---
 
-## Componente 6 — Notificações (Push/In-app)
+## Componente 6 — Notificações
 
-Operação: notificarUsuario(userId, mensagem, tipo)
+**Operação: `notificarUsuario(userId, mensagem)`**
 
 - Pré-condições:
-  - userId deve ser válido.
-  - mensagem não pode estar vazia.
-  - tipo deve ser um valor aceito (ex.: RECEITA_STATUS, COMPRA_STATUS, ALERTA_VENCIMENTO).
-
+  - `userId` válido e existente
+  - `mensagem` não pode estar vazia
 - Pós-condições:
-  - notificação é registrada no sistema (log/histórico).
-  - notificação é enviada ao canal disponível (push/in-app/e-mail).
-  - status de entrega é armazenado (sucesso ou falha).
+  - Notificação enviada via Expo Push Notifications
+  - Registro da notificação armazenado no histórico
 
 ---
 
 ## Diagrama de Componentes
-<img width="1032" height="536" alt="Captura de tela 2026-03-04 220601" src="https://github.com/user-attachments/assets/e45cc267-2a03-457c-912e-ecf75f93c2a1" />
 
+<img width="1032" height="536" alt="Diagrama de Componentes" src="https://github.com/user-attachments/assets/e45cc267-2a03-457c-912e-ecf75f93c2a1" />
+
+---
+
+# Lab 4 — Implementação de Componentes com Interfaces
+
+## Objetivo
+
+Com base no modelo arquitetural definido no Lab 3, foram selecionados e implementados dois componentes com dependência entre si, garantindo que a comunicação ocorra exclusivamente por meio de interfaces.
+
+---
+
+## Componentes Implementados
+
+### Componente Implementado 1 — Compras / Higiene Pessoal
+
+**Arquivo:** `components/Higiene_1.js`
+
+Corresponde ao **Componente 4 — Compras** do planejamento arquitetural. Responsável por exibir o catálogo de produtos de Higiene Pessoal (Sabonetes, Desodorantes, Absorventes, Pasta de Dente, Escovas, Enxaguante Bucal) com imagens reais. O usuário adiciona e remove itens usando os botões `+` e `−`.
+
+**Interface fornecida:**
+- Telas de categorias e produtos navegáveis via React Navigation
+
+**Interface requerida:**
+- `ICarrinhoService`
+  - `salvar(nomeProduto, quantidade)` — persiste o item ao clicar em `+` ou `−`
+  - `remover(nomeProduto)` — remove o item ao zerar a quantidade
+
+---
+
+### Componente Implementado 2 — Carrinho
+
+**Arquivo:** `App.js` — classes `SalvarItens` e `ListarItens`
+
+Corresponde à parte de persistência e listagem do **Componente 4 — Compras** do planejamento. Responsável por gravar os itens adicionados pelo usuário e exibi-los na aba Carrinho com nome e quantidade.
+
+**Interface fornecida:**
+- `ICarrinhoService`
+  - `salvar(nomeProduto, quantidade)`
+  - `remover(nomeProduto)`
+  - `listar()`
+
+**Interface requerida:** nenhuma
+
+---
+
+## Interfaces Definidas
+
+### `ICarrinhoService` — `components/interfaces/ICarrinhoService.js`
+
+Define o contrato de comunicação entre o Componente Compras e o Componente Carrinho.
+
+```js
+salvar(nomeProduto, quantidade)  // salva ou atualiza item no carrinho
+remover(nomeProduto)             // remove item do carrinho
+listar()                         // retorna todos os itens salvos
+```
+
+### `IAutenticacaoService` — `components/interfaces/IAutenticacaoService.js`
+
+Define o contrato do componente de autenticação, base para futura integração com Firebase/JWT conforme planejado no Lab 2.
+
+```js
+autenticar(usuario, senha)  // valida credenciais → retorna true/false
+cadastrar(usuario, senha)   // registra novo usuário
+```
+
+---
+
+## Implementações
+
+| Interface | Implementação | Arquivo |
+|---|---|---|
+| `ICarrinhoService` | `CarrinhoServiceImpl` | `components/interfaces/CarrinhoServiceImpl.js` |
+| `IAutenticacaoService` | `AutenticacaoService` | `components/interfaces/AutenticacaoService.js` |
+
+> As implementações utilizam **AsyncStorage** para persistência local.
+> Quando o Firebase for integrado (conforme planejado no Lab 2), basta criar novas
+> implementações das mesmas interfaces — os componentes não precisarão ser alterados.
+
+---
+
+## Como Ocorre a Comunicação Entre os Componentes
+
+```
+Usuário clica "+" em Higiene Pessoal
+        ↓
+Higiene_1.js chama:
+  carrinhoService.salvar(nomeProduto, quantidade)
+        ↓
+carrinhoService é uma instância de CarrinhoServiceImpl
+que implementa ICarrinhoService
+        ↓
+CarrinhoServiceImpl grava no AsyncStorage com prefixo "carrinho__"
+        ↓
+Usuário abre aba Carrinho
+        ↓
+ListarItens.componentDidMount() lê o AsyncStorage
+e exibe os itens na tela
+```
+
+O Componente Higiene (`Higiene_1.js`) **não sabe como o carrinho é implementado** — ele apenas chama os métodos definidos na interface `ICarrinhoService`.
+
+---
+
+## Como Foi Evitado o Acoplamento Direto
+
+**Antes — acoplamento direto (problema):**
+```js
+// Higiene_1.js importava a classe concreta diretamente do App.js
+import { SalvarItens } from '../App';
+const salvarItens = new SalvarItens();
+salvarItens.salvar(nome, nova); // depende de App.js
+```
+
+**Depois — via interface (solução):**
+```js
+// Higiene_1.js importa a implementação que segue o contrato ICarrinhoService
+import { CarrinhoServiceImpl } from './interfaces/CarrinhoServiceImpl';
+const carrinhoService = new CarrinhoServiceImpl();
+carrinhoService.salvar(nome, nova); // só usa métodos da interface
+```
+
+Para trocar de AsyncStorage para Firebase no futuro:
+1. Criar `CarrinhoFirebaseImpl` implementando `ICarrinhoService`
+2. Alterar apenas a linha de import em `Higiene_1.js` e `Cabelos.js`
+3. Os demais componentes continuam funcionando sem alteração
+
+---
+
+## Estrutura do Projeto
+
+```
+farmacia/
+├── App.js                                   # Login, Cadastro, Carrinho, Navegação
+├── components/
+│   ├── interfaces/                          # Interfaces e implementações (Lab 4)
+│   │   ├── ICarrinhoService.js              # Interface do carrinho (contrato)
+│   │   ├── CarrinhoServiceImpl.js           # Implementação com AsyncStorage
+│   │   ├── IAutenticacaoService.js          # Interface de autenticação (contrato)
+│   │   └── AutenticacaoService.js           # Implementação com AsyncStorage
+│   ├── Higiene_1.js                         # Componente Higiene Pessoal
+│   ├── Cabelos.js                           # Componente Cabelos
+│   ├── Higiene_Pessoal/                     # Imagens dos produtos de higiene
+│   │   ├── Sabonete/
+│   │   ├── Desodorante/
+│   │   ├── Absorvente/
+│   │   ├── Pasta_de_Dente/
+│   │   ├── Escovas/
+│   │   └── Enxaguante_Bucal/
+│   └── Cabelos/
+│       └── Shampoo/
+└── assets/
+```
+
+---
+
+## Instruções para Execução
+
+### Pré-requisitos
+- Node.js instalado
+- App **Expo Go** instalado no celular (iOS ou Android)
+
+### Passos
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/Matias2335/FARMACIA.git
+cd FARMACIA
+
+# 2. Instale as dependências
+npm install
+
+# 3. Inicie o servidor Expo
+npx expo start
+
+# 4. Escaneie o QR Code com o Expo Go no celular
+```
+
+### Como testar o fluxo
+
+1. Abra a aba **"Criar Usuário"** → cadastre um usuário e senha
+2. Abra a aba **"Login"** → entre com o usuário criado
+3. Toque em **"Higiene"** → escolha uma subcategoria (ex: Sabonetes)
+4. Toque em **"+"** em qualquer produto para adicionar ao carrinho
+5. Abra a aba **"Carrinho"** → o produto aparece listado com nome e quantidade
+
+> **Observação:** Login e Cadastro funcionam com AsyncStorage local.
+> A integração com Firebase (autenticação em nuvem com JWT) será implementada em etapa futura,
+> conforme planejado na arquitetura do Lab 2.
+
+## Demonstração do Funcionamento
+
+### Tela de Pedidos — categorias disponíveis
+![Pedidos](prints/pedidos.png)
+
+### Higiene Pessoal — subcategorias
+![Higiene](prints/higiene.png)
+
+### Sabonetes 
+![Sabonetes](prints/sabonetes.png)
+
+### Desodorantes 
+![Desodorantes](prints/desodorantes.png)
+
+### Carrinho —
+![Carrinho](prints/carrinho.png)
