@@ -741,3 +741,8 @@ npx expo start
 
 ### Carrinho
 ![Carrinho](prints/carrinho.png)
+
+<img width="599" height="696" alt="image" src="https://github.com/user-attachments/assets/a4013620-c817-447a-85bb-ed4483502621" />
+
+<img width="590" height="629" alt="image" src="https://github.com/user-attachments/assets/2aa51845-6c91-4d9e-bb0e-731bcae5597b" />
+
