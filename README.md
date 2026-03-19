@@ -742,7 +742,229 @@ npx expo start
 ### Carrinho
 ![Carrinho](prints/carrinho.png)
 
+
+
+# Parte 5 — Modelagem de Processo de Negócio TO-BE (BPMN) e Especificação de Requisitos
+
+---
+
+## 1. Diagrama BPMN do Processo TO-BE — Venda de Medicamento
+
 <img width="599" height="696" alt="image" src="https://github.com/user-attachments/assets/a4013620-c817-447a-85bb-ed4483502621" />
 
+**Processo selecionado:** Venda de Medicamento
+
+**Justificativa:** Este processo contempla várias etapas sequenciais e paralelas, envolve decisões (receita obrigatória, estoque disponível, aprovação de pagamento), manipula dados do sistema (cliente, produto, pedido, estoque), aplica regras de negócio relevantes (CFM, ANVISA, Mercado Pago) e integra serviços externos.
+
+---
+
+### 1.1 Participantes (Lanes / Pools)
+
+| Lane   | Ator                 | Responsabilidades                                                    |
+|--------|----------------------|----------------------------------------------------------------------|
+| Lane 1 | Cliente              | Inicia a compra, envia receita, escolhe forma de pagamento           |
+| Lane 2 | Atendente / App      | Consulta catálogo, registra pedido, aciona pagamento                 |
+| Lane 3 | Farmacêutico         | Valida receita médica, libera produtos controlados                   |
+| Lane 4 | Sistema (Backend)    | Verifica estoque, processa pagamento, atualiza registros             |
+| Lane 5 | Mercado Pago (API)   | Processa transação financeira, retorna status                        |
+
+---
+
+### 1.2 Descrição Detalhada das Tarefas do Processo BPMN
+
+**Evento de Início**
+Cliente acessa o aplicativo Cuidar+ e seleciona produtos desejados.
+
+---
+
+**T01 — Consultar Catálogo de Produtos**
+- Ator: Atendente / App
+- O sistema exibe os produtos organizados por categoria (Higiene, Medicamentos, Dermocosméticos, Suplementos).
+- O cliente filtra e seleciona os itens desejados, adicionando-os ao carrinho.
+- Dados envolvidos: nome do produto, preço, categoria, disponibilidade em estoque.
+
+**T02 — Verificar Disponibilidade em Estoque**
+- Ator: Sistema (Backend)
+- Para cada item do carrinho, o sistema consulta o Firestore e verifica a quantidade disponível.
+- Gateway de decisão: produto disponível em estoque?
+  - **SIM:** prossegue para T03.
+  - **NÃO:** sistema notifica o cliente, remove o item do carrinho e retorna a T01 para nova seleção.
+
+**T03 — Verificar Necessidade de Receita**
+- Ator: Sistema (Backend)
+- O sistema verifica se algum produto do carrinho é medicamento de controle especial (tarja vermelha, tarja preta, antimicrobiano).
+- Gateway de decisão: produto requer receita?
+  - **NÃO:** segue para T06 (confirmação do pedido).
+  - **SIM:** fluxo bifurca para T04 e T05.
+
+**T04 — Solicitar Envio de Receita**
+- Ator: Cliente
+- O sistema exibe tela de upload e instrui o cliente a fotografar e enviar a receita médica.
+- O cliente faz upload da imagem (JPG/PNG/PDF) pelo aplicativo.
+- Restrição: arquivo deve ser menor que 5 MB e legível.
+
+**T05 — Validar Receita Médica**
+- Ator: Farmacêutico
+- O farmacêutico recebe notificação de receita pendente no painel farmacêutico.
+- Analisa validade, CRM do médico, nome do paciente, dosagem e quantidade prescrita.
+- Gateway de decisão: receita válida?
+  - **SIM:** registra aprovação no sistema com carimbo do farmacêutico e data/hora.
+  - **NÃO:** rejeita com justificativa; sistema notifica cliente e retorna a T04.
+
+**T06 — Confirmar Pedido**
+- Ator: Cliente / App
+- O sistema exibe o resumo do pedido: produtos, quantidades, valores unitários e total.
+- Cliente revisa e confirma o pedido.
+- O sistema gera o ID do pedido e registra com status PENDENTE no Firestore.
+
+**T07 — Processar Pagamento via Mercado Pago**
+- Ator: Sistema + Mercado Pago API
+- O sistema chama a API do Mercado Pago enviando: valor total, ID do pedido e dados do cliente.
+- O Mercado Pago retorna status: APROVADO, PENDENTE ou RECUSADO.
+- Gateway de decisão: pagamento aprovado?
+  - **APROVADO:** segue para T08.
+  - **RECUSADO:** sistema notifica o cliente com motivo; retorna a T06 para nova tentativa ou cancelamento.
+
+**T08 — Registrar Venda e Atualizar Estoque**
+- Ator: Sistema (Backend)
+- O sistema registra a venda no Firestore com data, hora, produtos, valores e ID da transação.
+- Decrementa a quantidade de cada produto vendido no estoque.
+- Verifica se algum produto ficou abaixo do estoque mínimo e dispara alerta para o gerente.
+
+**T09 — Emitir Comprovante e Notificar Cliente**
+- Ator: Sistema (Backend) / Expo Push Notifications
+- O sistema gera o comprovante de compra com ID do pedido, itens, valor total e forma de pagamento.
+- Envia notificação push ao cliente confirmando a compra.
+- Status do pedido atualizado para CONCLUÍDO.
+
+**Evento de Fim**
+Processo encerrado com sucesso: venda registrada, estoque atualizado, cliente notificado.
+
+---
+
+## 2. Regras de Negócio
+
+| ID    | Nome                                    | Descrição                                                                                                                                                                                      |
+|-------|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RN01  | Receita Obrigatória para Controlados    | Medicamentos de tarja vermelha, tarja preta e antimicrobianos só podem ser vendidos mediante apresentação e validação de receita médica vigente (máx. 30 dias para tarja vermelha; 10 dias para tarja preta). Resolução CFM 1.246/88 e RDC ANVISA 20/2011. |
+| RN02  | Estoque Mínimo                          | Nenhuma venda pode ser finalizada se a quantidade em estoque for inferior à quantidade solicitada. O sistema deve bloquear a inclusão do item no carrinho quando estoque = 0.                   |
+| RN03  | Alerta de Vencimento                    | O sistema deve emitir alerta automático ao gerente/farmacêutico quando um produto estiver com data de validade igual ou inferior a 30 dias. Produtos vencidos devem ser bloqueados para venda. |
+| RN04  | Limite de Quantidade por Receita        | A quantidade de medicamento controlado vendida por transação não pode exceder a quantidade prescrita na receita médica. O sistema deve validar: quantidade solicitada ≤ quantidade prescrita.  |
+| RN05  | Aprovação Farmacêutica Antes do Pagamento | Para pedidos com produtos controlados, o fluxo de pagamento só deve ser liberado após o farmacêutico aprovar a receita. O pedido permanece com status AGUARDANDO_APROVACAO até a liberação.  |
+| RN06  | Política de Cancelamento                | O cliente pode cancelar o pedido até o processamento do pagamento. Após a aprovação do pagamento, o cancelamento só é possível por contato direto com a farmácia.                             |
+| RN07  | Tentativas de Pagamento                 | O sistema permite no máximo 3 tentativas de pagamento por pedido. Após 3 recusas, o pedido é automaticamente cancelado e o cliente é notificado para criar um novo pedido.                    |
+| RN08  | Unicidade de Cadastro de Cliente        | Cada CPF só pode estar vinculado a um único cadastro no sistema. Tentativa de cadastro com CPF já existente deve ser rejeitada com mensagem de erro específica.                                |
+| RN09  | Responsabilidade Farmacêutica           | Toda validação de receita deve ser registrada com o CRF do farmacêutico responsável, data e hora da validação, formando trilha de auditoria obrigatória por lei.                              |
+| RN10  | Preço Máximo ao Consumidor              | O preço de venda de medicamentos não pode superar o PF (Preço de Fábrica) acrescido da margem legal definida pela CMED. O sistema deve validar o preço cadastrado contra tabela CMED vigente. |
+
+---
+
+## 3. Diagrama de Casos de Uso (UML)
+
 <img width="590" height="629" alt="image" src="https://github.com/user-attachments/assets/2aa51845-6c91-4d9e-bb0e-731bcae5597b" />
+
+O diagrama de casos de uso foi derivado diretamente do processo TO-BE modelado em BPMN, garantindo consistência entre o processo de negócio e as funcionalidades do sistema.
+
+---
+
+### 3.1 Atores do Sistema
+
+| Ator                  | Tipo               | Descrição                                                        |
+|-----------------------|--------------------|------------------------------------------------------------------|
+| Cliente               | Primário           | Realiza compras, envia receitas, acompanha pedidos pelo aplicativo |
+| Atendente             | Primário           | Auxilia clientes, registra pedidos presenciais                   |
+| Farmacêutico          | Primário           | Valida receitas médicas, gerencia produtos controlados           |
+| Gerente               | Primário           | Acessa relatórios, gerencia estoque e usuários                   |
+| Mercado Pago API      | Externo (Sistema)  | Processa transações de pagamento                                 |
+| Firebase / Firestore  | Externo (Sistema)  | Armazena dados do sistema em nuvem                               |
+| Expo Notifications    | Externo (Sistema)  | Serviço de notificações push para mobile                         |
+
+---
+
+### 3.2 Lista de Casos de Uso
+
+| ID    | Caso de Uso                        | Atores Envolvidos                              | Tarefa BPMN  |
+|-------|------------------------------------|------------------------------------------------|--------------|
+| UC01  | Realizar Login / Autenticar        | Cliente, Atendente, Farmacêutico, Gerente      | Pré-condição |
+| UC02  | Consultar Catálogo de Produtos     | Cliente, Atendente, Sistema                    | T01          |
+| UC03  | Gerenciar Carrinho de Compras      | Cliente, Atendente, Sistema                    | T01, T02     |
+| UC04  | Verificar Disponibilidade em Estoque | Sistema, Gerente                             | T02          |
+| UC05  | Enviar Receita Médica              | Cliente                                        | T04          |
+| UC06  | Validar Receita Médica             | Farmacêutico, Sistema                          | T05          |
+| UC07  | Confirmar Pedido                   | Cliente, Sistema                               | T06          |
+| UC08  | Processar Pagamento                | Sistema, Mercado Pago API                      | T07          |
+| UC09  | Registrar Venda                    | Sistema                                        | T08          |
+| UC10  | Atualizar Estoque                  | Sistema, Gerente                               | T08          |
+| UC11  | Emitir Comprovante de Compra       | Sistema, Cliente                               | T09          |
+| UC12  | Enviar Notificação Push            | Sistema, Expo Notifications                    | T09          |
+| UC13  | Gerar Relatório de Vendas          | Gerente, Sistema                               | Suporte      |
+| UC14  | Gerenciar Usuários e Permissões    | Gerente, Sistema                               | Suporte      |
+| UC15  | Emitir Alerta de Vencimento        | Sistema, Farmacêutico, Gerente                 | RN03         |
+
+---
+
+### 3.3 Especificação dos Casos de Uso Principais
+
+#### UC06 — Validar Receita Médica
+
+| Campo             | Descrição                                                                                                                                                         |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Atores**        | Farmacêutico (primário), Sistema (secundário)                                                                                                                     |
+| **Pré-condição**  | Cliente enviou receita via app; pedido com status AGUARDANDO_APROVACAO                                                                                            |
+| **Pós-condição**  | Receita aprovada ou rejeitada com registro de auditoria (CRF, data, hora)                                                                                         |
+| **Fluxo Principal** | 1. Farmacêutico recebe notificação de receita pendente<br>2. Acessa painel de validação<br>3. Visualiza imagem da receita e dados do pedido<br>4. Verifica validade, CRM médico, nome do paciente e dosagem<br>5. Aprova receita<br>6. Sistema registra aprovação e libera fluxo de pagamento |
+| **Fluxo Alternativo** | 5a. Farmacêutico rejeita receita com justificativa<br>5b. Sistema notifica cliente e solicita novo envio                                                      |
+| **Regras Aplicadas** | RN01, RN04, RN05, RN09                                                                                                                                         |
+
+---
+
+#### UC08 — Processar Pagamento
+
+| Campo             | Descrição                                                                                                                                                         |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Atores**        | Sistema (primário), Mercado Pago API (externo)                                                                                                                    |
+| **Pré-condição**  | Pedido confirmado pelo cliente; receita aprovada (se aplicável)                                                                                                   |
+| **Pós-condição**  | Transação aprovada e pedido com status PAGO; ou recusada e cliente notificado                                                                                     |
+| **Fluxo Principal** | 1. Sistema cria cobrança via API do Mercado Pago<br>2. Mercado Pago processa a transação<br>3. Retorna status APROVADO<br>4. Sistema atualiza pedido para PAGO e prossegue para T08 |
+| **Fluxo Alternativo** | 3a. Retorno RECUSADO: sistema incrementa contador de tentativas<br>3b. Se tentativas < 3: notifica cliente para nova tentativa<br>3c. Se tentativas >= 3: cancela pedido automaticamente (RN07) |
+| **Regras Aplicadas** | RN06, RN07                                                                                                                                                      |
+
+---
+
+#### UC03 — Gerenciar Carrinho de Compras
+
+| Campo             | Descrição                                                                                                                                                         |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Atores**        | Cliente (primário), Atendente, Sistema                                                                                                                            |
+| **Pré-condição**  | Usuário autenticado no aplicativo                                                                                                                                 |
+| **Pós-condição**  | Carrinho atualizado com os produtos selecionados                                                                                                                  |
+| **Fluxo Principal** | 1. Cliente visualiza catálogo de produtos<br>2. Seleciona produto e quantidade<br>3. Sistema verifica disponibilidade em estoque<br>4. Sistema adiciona item ao carrinho via `ICarrinhoService.salvar()`<br>5. Cliente visualiza resumo do carrinho |
+| **Fluxo Alternativo** | 3a. Produto sem estoque: sistema exibe mensagem e impede adição<br>4a. Cliente remove item: sistema chama `ICarrinhoService.remover()`                        |
+| **Regras Aplicadas** | RN02                                                                                                                                                            |
+
+---
+
+## 4. Requisitos Não Funcionais
+
+| ID     | Categoria              | Requisito                                                                                                                                                                           | Critério de Aceitação                                                                                                           |
+|--------|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| RNF01  | Desempenho             | O sistema deve responder a consultas de catálogo de produtos em no máximo 2 segundos para conexões com latência de até 100ms.                                                       | Testes de carga com 50 usuários simultâneos devem evidenciar tempo de resposta médio ≤ 2s em 95% das requisições.              |
+| RNF02  | Segurança              | Todos os dados trafegados entre o aplicativo mobile e o backend devem ser criptografados via TLS 1.3. Senhas devem utilizar hash bcrypt com fator de custo ≥ 12. Tokens JWT devem expirar em no máximo 24 horas. | Auditoria de segurança deve confirmar ausência de tráfego HTTP não cifrado e conformidade com LGPD (Lei 13.709/2018).         |
+| RNF03  | Disponibilidade        | O sistema deve garantir disponibilidade mínima de 99% nos horários de funcionamento da farmácia (seg–sáb, 7h–22h). Manutenções planejadas devem ocorrer fora desse janelo.          | Monitoramento via Firebase Performance Monitoring deve registrar downtime acumulado < 7 horas/mês.                              |
+| RNF04  | Usabilidade            | O aplicativo deve ser utilizável por usuários com baixa familiaridade digital. A navegação entre catálogo e finalização de compra deve ser concluída em no máximo 5 toques. A interface deve seguir diretrizes WCAG 2.1 nível AA. | Testes de usabilidade com 5 usuários do público-alvo devem evidenciar taxa de conclusão de tarefa ≥ 80% sem assistência.     |
+| RNF05  | Rastreabilidade e Auditoria | Toda ação crítica (validação de receita, venda de medicamento controlado, alteração de estoque, login/logout) deve ser registrada em log imutável com: usuário, ação, timestamp e IP. Logs devem ser retidos por no mínimo 5 anos conforme ANVISA. | Relatório de auditoria deve ser gerado automaticamente e exportável em PDF pelo gerente. Nenhuma ação crítica deve estar ausente dos logs. |
+
+---
+
+## 5. Resumo dos Artefatos Produzidos
+
+| Artefato                              | Quantidade                          | Referência     |
+|---------------------------------------|-------------------------------------|----------------|
+| Tarefas BPMN descritas (TO-BE)        | 9 tarefas (T01 a T09)               | Seção 1        |
+| Gateways de decisão modelados         | 4 gateways                          | Seção 1.2      |
+| Regras de negócio documentadas        | 10 regras (RN01 a RN10)             | Seção 2        |
+| Casos de uso UML identificados        | 15 casos (UC01 a UC15)              | Seção 3        |
+| Requisitos não funcionais             | 5 requisitos (RNF01 a RNF05)        | Seção 4        |
+| Atores identificados                  | 7 (4 humanos + 3 sistemas externos) | Seção 3.1      |
+| Integrações externas modeladas        | 3 (Mercado Pago, Firebase, Expo)    | Seções 1 e 3   |
 
