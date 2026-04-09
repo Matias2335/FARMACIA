@@ -748,11 +748,11 @@ npx expo start
 
 ---
 
-## 1. Diagrama BPMN do Processo TO-BE — Venda de Medicamento
+## 1. Diagrama BPMN do Processo TO-BE — Relizar Compra
 
 <img width="1187" height="293" alt="image" src="https://github.com/user-attachments/assets/ea0afa98-ef4f-4a71-b7e3-9917f5283c39" />
 
-**Processo selecionado:** Adicionar ao Carrinho
+**Processo selecionado:** Adicionar ao Carrinho <br>
 **Justificativa:** Este processo contempla a base de uso e acesso do cliente ao sistema.
 
 ---
@@ -768,7 +768,7 @@ npx expo start
 
 ### 1.2 Descrição Detalhada das Tarefas do Processo BPMN
 
-**Evento de Início**
+**Evento de Início**<br>
 O processo inicia quando o cliente acessa o aplicativo da farmácia Cuidar+ e decide realizar a compra de um ou mais produtos.
 
 ---
@@ -799,7 +799,7 @@ O processo inicia quando o cliente acessa o aplicativo da farmácia Cuidar+ e de
 - O cliente adiciona o produto ao carrinho.
 - O sistema registra o item e a quantidade selecionada.
 
-**Evento de Fim**
+**Evento de Fim**<br>
 Processo encerrado com sucesso: venda registrada, estoque atualizado, cliente notificado.
 
 ---
