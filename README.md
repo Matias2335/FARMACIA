@@ -750,11 +750,10 @@ npx expo start
 
 ## 1. Diagrama BPMN do Processo TO-BE — Venda de Medicamento
 
-<img width="599" height="696" alt="image" src="https://github.com/user-attachments/assets/a4013620-c817-447a-85bb-ed4483502621" />
+<img width="1187" height="293" alt="image" src="https://github.com/user-attachments/assets/ea0afa98-ef4f-4a71-b7e3-9917f5283c39" />
 
-**Processo selecionado:** Venda de Medicamento
-
-**Justificativa:** Este processo contempla várias etapas sequenciais e paralelas, envolve decisões (receita obrigatória, estoque disponível, aprovação de pagamento), manipula dados do sistema (cliente, produto, pedido, estoque), aplica regras de negócio relevantes (CFM, ANVISA, Mercado Pago) e integra serviços externos.
+**Processo selecionado:** Adicionar ao Carrinho
+**Justificativa:** Este processo contempla a base de uso e acesso do cliente ao sistema.
 
 ---
 
@@ -762,80 +761,43 @@ npx expo start
 
 | Lane   | Ator                 | Responsabilidades                                                    |
 |--------|----------------------|----------------------------------------------------------------------|
-| Lane 1 | Cliente              | Inicia a compra, envia receita, escolhe forma de pagamento           |
-| Lane 2 | Atendente / App      | Consulta catálogo, registra pedido, aciona pagamento                 |
-| Lane 3 | Farmacêutico         | Valida receita médica, libera produtos controlados                   |
-| Lane 4 | Sistema (Backend)    | Verifica estoque, processa pagamento, atualiza registros             |
-| Lane 5 | Mercado Pago (API)   | Processa transação financeira, retorna status                        |
+| Lane 1 | Cliente              | Realiza cadastro, faz login, visualiza catálogo de produtos, seleciona produto, adiciona ao carrinho                                      |
+| Lane 2 | Sistema              | Valida dados do cadastro, registra cadastro, autentica login do cliente, exibe catálogo de produtos, exibe detalhes do produto selecionado|
 
 ---
 
 ### 1.2 Descrição Detalhada das Tarefas do Processo BPMN
 
 **Evento de Início**
-Cliente acessa o aplicativo Cuidar+ e seleciona produtos desejados.
+O processo inicia quando o cliente acessa o aplicativo da farmácia Cuidar+ e decide realizar a compra de um ou mais produtos.
 
 ---
 
-**T01 — Consultar Catálogo de Produtos**
-- Ator: Atendente / App
-- O sistema exibe os produtos organizados por categoria (Higiene, Medicamentos, Dermocosméticos, Suplementos).
-- O cliente filtra e seleciona os itens desejados, adicionando-os ao carrinho.
-- Dados envolvidos: nome do produto, preço, categoria, disponibilidade em estoque.
+**T01 — Cadastro**
+- Ator: Cliente / Sistema
+- O cliente informa seus dados (nome, CPF, e-mail, senha).
+- O sistema valida e registra o novo usuário.
 
-**T02 — Verificar Disponibilidade em Estoque**
-- Ator: Sistema (Backend)
-- Para cada item do carrinho, o sistema consulta o Firestore e verifica a quantidade disponível.
-- Gateway de decisão: produto disponível em estoque?
-  - **SIM:** prossegue para T03.
-  - **NÃO:** sistema notifica o cliente, remove o item do carrinho e retorna a T01 para nova seleção.
 
-**T03 — Verificar Necessidade de Receita**
-- Ator: Sistema (Backend)
-- O sistema verifica se algum produto do carrinho é medicamento de controle especial (tarja vermelha, tarja preta, antimicrobiano).
-- Gateway de decisão: produto requer receita?
-  - **NÃO:** segue para T06 (confirmação do pedido).
-  - **SIM:** fluxo bifurca para T04 e T05.
+**T02 — Login**
+- Ator: Cliente / Sistema
+- O cliente insere suas credenciais.
+- O sistema autentica e libera acesso ao aplicativo.
 
-**T04 — Solicitar Envio de Receita**
-- Ator: Cliente
-- O sistema exibe tela de upload e instrui o cliente a fotografar e enviar a receita médica.
-- O cliente faz upload da imagem (JPG/PNG/PDF) pelo aplicativo.
-- Restrição: arquivo deve ser menor que 5 MB e legível.
+**T03 — Visualiza Produtos**
+- Ator: Cliente / Sistema
+- O sistema exibe o catálogo organizado por categorias.
+- O cliente navega entre os produtos disponíveis.
 
-**T05 — Validar Receita Médica**
-- Ator: Farmacêutico
-- O farmacêutico recebe notificação de receita pendente no painel farmacêutico.
-- Analisa validade, CRM do médico, nome do paciente, dosagem e quantidade prescrita.
-- Gateway de decisão: receita válida?
-  - **SIM:** registra aprovação no sistema com carimbo do farmacêutico e data/hora.
-  - **NÃO:** rejeita com justificativa; sistema notifica cliente e retorna a T04.
+**T04 — Selecionar Produto**
+- Ator: Cliente / Sistema
+- O cliente escolhe um ou mais produtos.
+- O sistema exibe detalhes (preço, descrição, disponibilidade).
 
-**T06 — Confirmar Pedido**
-- Ator: Cliente / App
-- O sistema exibe o resumo do pedido: produtos, quantidades, valores unitários e total.
-- Cliente revisa e confirma o pedido.
-- O sistema gera o ID do pedido e registra com status PENDENTE no Firestore.
-
-**T07 — Processar Pagamento via Mercado Pago**
-- Ator: Sistema + Mercado Pago API
-- O sistema chama a API do Mercado Pago enviando: valor total, ID do pedido e dados do cliente.
-- O Mercado Pago retorna status: APROVADO, PENDENTE ou RECUSADO.
-- Gateway de decisão: pagamento aprovado?
-  - **APROVADO:** segue para T08.
-  - **RECUSADO:** sistema notifica o cliente com motivo; retorna a T06 para nova tentativa ou cancelamento.
-
-**T08 — Registrar Venda e Atualizar Estoque**
-- Ator: Sistema (Backend)
-- O sistema registra a venda no Firestore com data, hora, produtos, valores e ID da transação.
-- Decrementa a quantidade de cada produto vendido no estoque.
-- Verifica se algum produto ficou abaixo do estoque mínimo e dispara alerta para o gerente.
-
-**T09 — Emitir Comprovante e Notificar Cliente**
-- Ator: Sistema (Backend) / Expo Push Notifications
-- O sistema gera o comprovante de compra com ID do pedido, itens, valor total e forma de pagamento.
-- Envia notificação push ao cliente confirmando a compra.
-- Status do pedido atualizado para CONCLUÍDO.
+**T05 — Adicionar ao Carrinho**
+- Ator: Cliente / Sistema
+- O cliente adiciona o produto ao carrinho.
+- O sistema registra o item e a quantidade selecionada.
 
 **Evento de Fim**
 Processo encerrado com sucesso: venda registrada, estoque atualizado, cliente notificado.
