@@ -930,3 +930,12 @@ O diagrama de casos de uso foi derivado diretamente do processo TO-BE modelado e
 | Atores identificados                  | 7 (4 humanos + 3 sistemas externos) | Seção 3.1      |
 | Integrações externas modeladas        | 3 (Mercado Pago, Firebase, Expo)    | Seções 1 e 3   |
 
+--- 
+
+## Contrato de Serviço
+
+
+### Contrato de Serviço
+
+[TPM_ESOS_Design Serviços.pdf](https://github.com/user-attachments/files/26768223/TPM_ESOS_Design.Servicos.pdf)
+
