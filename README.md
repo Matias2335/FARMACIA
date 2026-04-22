@@ -932,8 +932,9 @@ O diagrama de casos de uso foi derivado diretamente do processo TO-BE modelado e
 
 --- 
 
-## Contrato de Serviço
+## Identificação de Operações e Serviços Candidatos
 
+[TPM_ESOS_Análise Serviços_completo.pdf](https://github.com/user-attachments/files/26982577/TPM_ESOS_Analise.Servicos_completo.pdf)
 
 ### Contrato de Serviço
 
