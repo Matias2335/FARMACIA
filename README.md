@@ -944,4 +944,9 @@ O diagrama de casos de uso foi derivado diretamente do processo TO-BE modelado e
 
 [TPM_ESOS_Construção Serviços.pdf](https://github.com/user-attachments/files/27223618/TPM_ESOS_Construcao.Servicos.pdf)
 
+## DDD Estratégico - Microserviços
+
+[TPM_DDD Estratégico.pdf](https://github.com/user-attachments/files/27462087/TPM_DDD.Estrategico.pdf)
+
+
 
