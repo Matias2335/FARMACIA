@@ -948,5 +948,9 @@ O diagrama de casos de uso foi derivado diretamente do processo TO-BE modelado e
 
 [TPM_DDD Estratégico.pdf](https://github.com/user-attachments/files/27462087/TPM_DDD.Estrategico.pdf)
 
+## Análise de Domínio
+[LAB_Analise_de_dominio (1).pdf](https://github.com/user-attachments/files/27738148/LAB_Analise_de_dominio.1.pdf)
+
+
 
 
